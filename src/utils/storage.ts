@@ -142,6 +142,7 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {
+  userName: 'Mille',
   soundEnabled: true,
   rulerEnabled: false,
   fontSize: 'medium',

@@ -10,6 +10,7 @@ interface ResultScreenProps {
   round2Wpm: number;
   existingSessions: SessionRecord[];
   allBadges: BadgeDef[];
+  userName?: string;
   onFinishSession: (sessionData: {
     pointsEarned: number;
     praiseText: string;
@@ -24,10 +25,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   round2Wpm,
   existingSessions,
   allBadges,
+  userName = 'Mille',
   onFinishSession,
   onRestartNewText
 }) => {
   const [userRating, setUserRating] = useState<number>(3); // 1 = Ok, 2 = Bra, 3 = Supert!
+  const name = userName.trim() || 'Mille';
 
   const diff = round2Wpm - round1Wpm;
   const percentChange = round1Wpm > 0 ? Math.round((diff / round1Wpm) * 100) : 0;
@@ -53,16 +56,16 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     bonusReasons.push('Framgang i 2. runde (+3 p)');
   }
 
-  // Praise message specifically cheering on Mille
+  // Praise message specifically cheering on the reader
   let praiseText = '';
   if (diff > 5) {
-    praiseText = `Strålende repetert lesing, Mille! Andre runde gikk hele ${diff} ord/min raskere (${percentChange > 0 ? `+${percentChange}%` : ''}). Du flyr gjennom teksten med det herlige smilet ditt!`;
+    praiseText = `Strålende repetert lesing, ${name}! Andre runde gikk hele ${diff} ord/min raskere (${percentChange > 0 ? `+${percentChange}%` : ''}). Du flyr gjennom teksten med det herlige smilet ditt!`;
   } else if (diff > 0) {
-    praiseText = `Kjempefin innsats, fantastiske Mille! Andre runde gikk ${diff} ord/min raskere. Flott fokus og herlig flyt!`;
+    praiseText = `Kjempefin innsats, fantastiske ${name}! Andre runde gikk ${diff} ord/min raskere. Flott fokus og herlig flyt!`;
   } else if (diff === 0) {
-    praiseText = `Imponerende jevnt tempo, Mille! Du holdt nøyaktig samme trygge stødighet i begge rundene (${round1Wpm} ord/min).`;
+    praiseText = `Imponerende jevnt tempo, ${name}! Du holdt nøyaktig samme trygge stødighet i begge rundene (${round1Wpm} ord/min).`;
   } else {
-    praiseText = `Kjempefint gjennomført, Mille! Noen ganger leser vi roligere i andre runde for å leve oss ekstra godt inn i handlingen. Du er verdens beste jente!`;
+    praiseText = `Kjempefint gjennomført, ${name}! Noen ganger leser vi roligere i andre runde for å leve oss ekstra godt inn i handlingen. Du er ${name === 'Mille' ? 'verdens beste jente' : 'en fantastisk leser'}!`;
   }
 
   // Fire confetti and play fanfare on mount

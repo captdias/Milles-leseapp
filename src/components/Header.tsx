@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Volume2, VolumeX, Sparkles, BookOpen, Settings, Heart, Flame, Moon, Sun, BookMarked } from 'lucide-react';
+import { Volume2, VolumeX, Sparkles, BookOpen, Settings, Heart, Flame, Moon, Sun, BookMarked, Edit2 } from 'lucide-react';
 import { LevelInfo, UserSettings } from '../types';
 import { sound } from '../utils/audio';
-import { FUN_MILLE_QUOTES } from '../utils/encouragements';
+import { getMilleQuotes } from '../utils/encouragements';
 
 interface HeaderProps {
   level: LevelInfo;
@@ -27,10 +27,12 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mascotBubble, setMascotBubble] = useState<string | null>(null);
   const currentTheme = settings.theme || 'nordic';
+  const userName = settings.userName?.trim() || 'Mille';
 
   const handleMascotClick = () => {
     sound.playPop();
-    const quote = FUN_MILLE_QUOTES[Math.floor(Math.random() * FUN_MILLE_QUOTES.length)];
+    const quotes = getMilleQuotes(userName);
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
     setMascotBubble(quote);
     setTimeout(() => setMascotBubble(null), 4000);
   };
@@ -64,20 +66,44 @@ export const Header: React.FC<HeaderProps> = ({
     <header className={`relative mb-6 rounded-3xl border p-4 sm:p-5 transition-colors duration-200 flex flex-wrap items-center justify-between gap-4 ${headerCardStyles}`}>
       {/* Brand & Mascot */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onHomeClick}
-          className="group text-left flex items-center gap-3 transition-transform hover:scale-[1.01] active:scale-95 focus:outline-none cursor-pointer"
-          title="Gå til forsiden for Mille"
-        >
-          <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-3 ${logoIconBg}`}>
-            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
-          </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onHomeClick}
+            className="group text-left flex items-center gap-3 transition-transform hover:scale-[1.01] active:scale-95 focus:outline-none cursor-pointer"
+            title={`Gå til forsiden for ${userName}`}
+          >
+            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-3 ${logoIconBg}`}>
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
+            </div>
+          </button>
+
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-editorial font-bold tracking-tight">
-                Milles Leseflyt
-              </h1>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={onHomeClick}
+                className="text-xl sm:text-2xl font-editorial font-bold tracking-tight text-left hover:underline decoration-dashed decoration-1 underline-offset-4 cursor-pointer"
+                title={`Gå til forsiden for ${userName}`}
+              >
+                {userName ? `${userName}s Leseflyt` : 'Leseflyt'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playPop();
+                  onOpenSettings();
+                }}
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                  currentTheme === 'evening'
+                    ? 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    : 'text-stone-400 hover:text-stone-700 hover:bg-stone-200/60'
+                }`}
+                title={`Endre navn (nå: ${userName})`}
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
               <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1 ${
                 currentTheme === 'evening'
                   ? 'bg-amber-950/80 text-amber-300 border border-amber-700/60'
@@ -86,14 +112,14 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'bg-pink-100 text-pink-900 border border-pink-200'
               }`}>
                 <span>✨</span>
-                <span>Verdens beste jente</span>
+                <span>{userName === 'Mille' ? 'Verdens beste jente' : 'Superleser'}</span>
               </span>
             </div>
             <p className={`text-xs font-medium ${currentTheme === 'evening' ? 'text-slate-400' : 'text-stone-500'}`}>
               En liten leseøkt hver dag – trygt, rolig og gøy!
             </p>
           </div>
-        </button>
+        </div>
 
         {/* Mascot Avatar */}
         <div className="relative hidden md:block ml-1">
@@ -108,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Klikk på ugla Flyt for et heiarop!"
           >
             <span className="text-base group-hover:scale-125 transition-transform inline-block">🦉</span>
-            <span>Heia Mille!</span>
+            <span>Heia {userName}!</span>
           </button>
 
           {mascotBubble && (

@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Volume2, VolumeX, Eye, HelpCircle, BookOpen, Sparkles, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Volume2, VolumeX, Eye, HelpCircle, BookOpen, Sparkles, Check, User, Heart } from 'lucide-react';
 import { UserSettings } from '../types';
 import { sound } from '../utils/audio';
 
@@ -16,7 +16,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSave
 }) => {
+  const [nameInput, setNameInput] = useState<string>(settings.userName || 'Mille');
+
+  useEffect(() => {
+    setNameInput(settings.userName || 'Mille');
+  }, [settings.userName, isOpen]);
+
   if (!isOpen) return null;
+
+  const handleNameChange = (val: string) => {
+    setNameInput(val);
+    onSave({ ...settings, userName: val });
+  };
 
   const handleToggleSound = () => {
     const next = !settings.soundEnabled;
@@ -64,6 +75,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Options */}
         <div className="space-y-3">
+          {/* Reader's Name input */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="settings-user-name" className="text-xs sm:text-sm font-extrabold text-amber-950 flex items-center gap-1.5">
+                <User className="w-4 h-4 text-amber-600" />
+                <span>Hvem leser i dag? (Navn)</span>
+              </label>
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 border border-amber-300/60">
+                Huskes alltid
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                id="settings-user-name"
+                type="text"
+                value={nameInput}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Skriv inn navn, f.eks. Mille"
+                maxLength={30}
+                className="flex-1 px-3.5 py-2 rounded-xl bg-white border border-amber-300/80 text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-2xs"
+              />
+              {nameInput.trim() !== 'Mille' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playPop();
+                    handleNameChange('Mille');
+                  }}
+                  className="px-2.5 py-2 rounded-xl bg-white hover:bg-amber-100/70 border border-amber-300 text-xs font-bold text-amber-900 cursor-pointer transition-colors shrink-0"
+                  title="Nullstill til Mille"
+                >
+                  Mille
+                </button>
+              )}
+            </div>
+
+            <p className="text-[11px] text-amber-800/80 font-medium">
+              Navnet lagres trygt på denne enheten. Hele appen, heiaropene og diplomene tilpasses dette navnet!
+            </p>
+          </div>
+
           {/* Sound toggle */}
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center gap-3">

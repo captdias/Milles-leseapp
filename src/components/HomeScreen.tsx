@@ -18,6 +18,8 @@ interface HomeScreenProps {
   sessions: SessionRecord[];
   badges: BadgeDef[];
   theme?: 'nordic' | 'sunshine' | 'evening';
+  userName?: string;
+  onOpenSettings?: () => void;
   onStartSetup: () => void;
   onViewBadges: () => void;
   onViewStats: () => void;
@@ -33,10 +35,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   sessions,
   badges,
   theme = 'nordic',
+  userName = 'Mille',
+  onOpenSettings,
   onStartSetup,
   onViewBadges,
   onViewStats
 }) => {
+  const name = userName.trim() || 'Mille';
+
   const progressPercent = nextLevel
     ? Math.max(0, Math.min(100, Math.round(((points - level.min) / (nextLevel.min - level.min)) * 100)))
     : 100;
@@ -44,11 +50,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const pointsNeeded = nextLevel ? Math.max(0, nextLevel.min - points) : 0;
   const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
 
-  const [cheer, setCheer] = useState(() => getMilleCheer(sessions, streak, completedToday));
+  const [cheer, setCheer] = useState(() => getMilleCheer(sessions, streak, completedToday, name));
+
+  // Update cheer if name or sessions change
+  React.useEffect(() => {
+    setCheer(getMilleCheer(sessions, streak, completedToday, name));
+  }, [sessions, streak, completedToday, name]);
 
   const handleRefreshCheer = () => {
     sound.playPop();
-    setCheer(getMilleCheer(sessions, streak, completedToday));
+    setCheer(getMilleCheer(sessions, streak, completedToday, name));
   };
 
   // Theme-specific styles
@@ -79,19 +90,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       }`}>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="max-w-xl">
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-2.5 ${
-              isDark
-                ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60'
-                : isNordic
-                ? 'bg-[#EAE2D3] text-[#4A3E34] border border-[#DDD3C2]'
-                : 'bg-white/20 text-pink-100'
-            }`}>
-              <Heart className={`w-3.5 h-3.5 ${isNordic ? 'text-[#D35E35] fill-[#D35E35]' : 'fill-current'}`} />
-              <span>Verdens beste jente • Livsglad, blid & hjelpsom</span>
+            <div className="flex items-center gap-2 flex-wrap mb-2.5">
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide ${
+                isDark
+                  ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60'
+                  : isNordic
+                  ? 'bg-[#EAE2D3] text-[#4A3E34] border border-[#DDD3C2]'
+                  : 'bg-white/20 text-pink-100'
+              }`}>
+                <Heart className={`w-3.5 h-3.5 ${isNordic ? 'text-[#D35E35] fill-[#D35E35]' : 'fill-current'}`} />
+                <span>{name === 'Mille' ? 'Verdens beste jente • Livsglad, blid & hjelpsom' : 'Superleser • Livsglad, blid & lærevillig'}</span>
+              </div>
+
+              {onOpenSettings && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playPop();
+                    onOpenSettings();
+                  }}
+                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border transition-all cursor-pointer ${
+                    isDark
+                      ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-600'
+                      : isNordic
+                      ? 'bg-[#EAE2D3]/60 hover:bg-[#EAE2D3] text-[#4A3E34] border-[#DDD3C2]'
+                      : 'bg-white/20 hover:bg-white/30 text-white border-white/40'
+                  }`}
+                  title="Klikk her for å endre navnet"
+                >
+                  Endre navn ({name})
+                </button>
+              )}
             </div>
 
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-editorial font-bold tracking-tight leading-snug">
-              Hei, herlige Mille! 🌿
+              Hei, herlige {name}! 🌿
             </h2>
 
             <p className={`text-sm sm:text-base mt-2 font-normal leading-relaxed ${
@@ -128,7 +161,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
-      {/* Dagens heiarop til Mille (Encouragement styled like an authentic warm bookmark) */}
+      {/* Dagens heiarop (Encouragement styled like an authentic warm bookmark) */}
       <div className={`rounded-3xl border p-5 sm:p-6 transition-all ${
         isDark
           ? 'bg-[#1D2536] border-[#2A3449]'
@@ -147,7 +180,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   ? 'bg-[#F2EFE8] text-[#55473B] border border-[#DDD3C2]'
                   : 'bg-amber-100 text-amber-800'
               }`}>
-                Dagens heiarop til Mille
+                Dagens heiarop til {name}
               </span>
               <h3 className="text-base sm:text-lg font-editorial font-bold mt-0.5">
                 {cheer.headline}
@@ -165,7 +198,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 ? 'bg-[#FFFFFF] border-[#E3D9C9] text-[#4A3E34] hover:bg-[#F9F6F0]'
                 : 'bg-white border-amber-200 text-amber-800 hover:bg-amber-50'
             }`}
-            title="Få et nytt heiarop til Mille"
+            title={`Få et nytt heiarop til ${name}`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Nytt heiarop</span>
@@ -207,7 +240,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </span>
             </div>
             <p className={`text-xs font-medium mb-4 ${isDark ? 'text-slate-400' : 'text-stone-500'}`}>
-              Milles ukeoversikt: Hver lille økt gjør neste dag enda lettere.
+              {name}s ukeoversikt: Hver lille økt gjør neste dag enda lettere.
             </p>
 
             {/* 7-Day Visual Row */}
@@ -265,7 +298,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <p className={`text-xs p-3 rounded-2xl border font-medium leading-relaxed ${subtleBox}`}>
             {completedToday
-              ? 'Dagens lille økt er i boks, Mille! Fantastisk innsats! Du kan ta en bonus-økt hvis du har lyst, eller bare smile og nyte resten av dagen.'
+              ? `Dagens lille økt er i boks, ${name}! Fantastisk innsats! Du kan ta en bonus-økt hvis du har lyst, eller bare smile og nyte resten av dagen.`
               : 'En kort økt på noen få minutter holder lesegleden varm og gir hjernen en god opplevelse!'}
           </p>
         </div>
@@ -315,7 +348,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
-      {/* Milles Lesetittel & Poengoversikt */}
+      {/* Lesetittel & Poengoversikt */}
       <div className={`relative overflow-hidden rounded-3xl border p-5 sm:p-6 space-y-3.5 ${cardBase}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -323,7 +356,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               isDark ? 'text-slate-400' : 'text-stone-500'
             }`}>
               <span>{level.badge}</span>
-              <span>Milles lesetittel</span>
+              <span>{name}s lesetittel</span>
             </div>
             <div className="flex items-baseline gap-2 mt-0.5">
               <h2 className="text-2xl sm:text-3xl font-editorial font-bold">
@@ -385,7 +418,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <div>
             <h3 className="text-lg font-editorial font-bold flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-500" />
-              Milles hedersmerker
+              {name}s hedersmerker
             </h3>
             <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-stone-500'}`}>
               Samle hedersmerker ved å lese litt hver dag og heie på deg selv!
@@ -454,7 +487,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div>
           <h3 className="text-lg font-editorial font-bold flex items-center gap-2">
             <BarChart3 className={`w-5 h-5 ${isDark ? 'text-teal-400' : 'text-teal-600'}`} />
-            Milles lesekurve
+            {name}s lesekurve
           </h3>
           <p className={`text-xs sm:text-sm mt-1 font-medium ${isDark ? 'text-slate-300' : 'text-stone-600'}`}>
             {sessions.length > 0

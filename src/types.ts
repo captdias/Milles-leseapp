@@ -69,6 +69,7 @@ export type ScreenId =
   | 'stats';
 
 export interface UserSettings {
+  userName?: string;
   soundEnabled: boolean;
   rulerEnabled: boolean;
   fontSize: 'medium' | 'large' | 'xlarge';

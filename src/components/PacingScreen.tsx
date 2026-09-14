@@ -7,6 +7,7 @@ import { sound } from '../utils/audio';
 interface PacingScreenProps {
   textData: GeneratedText;
   round1Wpm: number;
+  userName?: string;
   onProceedToRound2: () => void;
   onBackToModel: () => void;
 }
@@ -16,9 +17,11 @@ type HighlighterColor = 'yellow' | 'green' | 'blue';
 export const PacingScreen: React.FC<PacingScreenProps> = ({
   textData,
   round1Wpm,
+  userName = 'Mille',
   onProceedToRound2,
   onBackToModel
 }) => {
+  const name = userName.trim() || 'Mille';
   const words = getWords(textData.text);
   
   // Suggested target: 8% higher than round 1, rounded to nearest 5
@@ -193,7 +196,7 @@ export const PacingScreen: React.FC<PacingScreenProps> = ({
         </button>
 
         <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-          Steg 3 av 4: Tempoøvelse for Mille
+          Steg 3 av 4: Tempoøvelse for {name}
         </span>
       </div>
 
@@ -411,7 +414,7 @@ export const PacingScreen: React.FC<PacingScreenProps> = ({
         </div>
 
         <p className="text-center text-xs text-slate-500 font-medium">
-          💡 Tips til Mille: Du kan trykke på et hvilket som helst ord for å hoppe rett dit, eller bruke <strong>mellomromstasten</strong> for pause!
+          💡 Tips til {name}: Du kan trykke på et hvilket som helst ord for å hoppe rett dit, eller bruke <strong>mellomromstasten</strong> for pause!
         </p>
 
         {/* Proceed to Round 2 button */}

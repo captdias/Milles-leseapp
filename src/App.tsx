@@ -153,6 +153,7 @@ export default function App() {
   const weekDays = getWeekDaysStatus(sessions);
 
   const currentTheme = settings.theme || 'nordic';
+  const userName = settings.userName?.trim() || 'Mille';
 
   // Theme page background
   const pageBackground = {
@@ -192,6 +193,8 @@ export default function App() {
               sessions={sessions}
               badges={BADGE_DEFINITIONS}
               theme={currentTheme}
+              userName={userName}
+              onOpenSettings={() => setIsSettingsOpen(true)}
               onStartSetup={() => setCurrentScreen('setup')}
               onViewBadges={() => setCurrentScreen('badges')}
               onViewStats={() => setCurrentScreen('stats')}
@@ -237,6 +240,7 @@ export default function App() {
             <PacingScreen
               textData={activeText}
               round1Wpm={round1Wpm}
+              userName={userName}
               onProceedToRound2={handleProceedToRound2}
               onBackToModel={() => setCurrentScreen('model')}
             />
@@ -249,6 +253,7 @@ export default function App() {
               round2Wpm={round2Wpm}
               existingSessions={sessions}
               allBadges={BADGE_DEFINITIONS}
+              userName={userName}
               onFinishSession={handleFinishSession}
               onRestartNewText={handleRestartNewText}
             />
