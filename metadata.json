@@ -1,0 +1,7 @@
+{
+  "name": "Leseflyt - Lesetrening og mestring",
+  "description": "Engasjerende og fargerik leseapp med daglig dagsrutine, to-runders lesetrening, visuell tempoøvelse, modell-lesing og personlige, livsglade heiarop og belønninger.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
