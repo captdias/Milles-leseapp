@@ -17,16 +17,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSave
 }) => {
   const [nameInput, setNameInput] = useState<string>(settings.userName || 'Mille');
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setNameInput(settings.userName || 'Mille');
+    setSaveMessage(null);
   }, [settings.userName, isOpen]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const handleNameChange = (val: string) => {
-    setNameInput(val);
-    onSave({ ...settings, userName: val });
+  const handleSaveNameOnly = () => {
+    const finalName = nameInput.trim() || 'Mille';
+    setNameInput(finalName);
+    onSave({ ...settings, userName: finalName });
+    sound.playSuccessChime();
+    setSaveMessage(`Navnet ble oppdatert til «${finalName}»!`);
+    setTimeout(() => {
+      setSaveMessage(null);
+    }, 3000);
+  };
+
+  const handleSaveAndClose = () => {
+    const finalName = nameInput.trim() || 'Mille';
+    onSave({ ...settings, userName: finalName });
+    sound.playSuccessChime();
+    onClose();
   };
 
   const handleToggleSound = () => {
@@ -41,23 +68,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onSave({ ...settings, rulerEnabled: !settings.rulerEnabled });
   };
 
-  const handleToggleDyslexic = () => {
-    sound.playPop();
-    onSave({ ...settings, dyslexicFont: !settings.dyslexicFont });
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-200/80 space-y-5 animate-in zoom-in-95 duration-150">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/50 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          sound.playPop();
+          onClose();
+        }
+      }}
+    >
+      <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200/80 animate-in zoom-in-95 duration-150 overflow-hidden">
+        {/* Modal Header (Fixed) */}
+        <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 shrink-0 bg-white">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-blue-100 text-blue-800">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">Innstillinger & Veiledning</h3>
-              <p className="text-xs text-slate-500 font-medium">Tilpass opplevelsen i Leseflyt</p>
+              <h3 className="text-lg font-black text-slate-900">Innstillinger & Navn</h3>
+              <p className="text-xs text-slate-500 font-medium">Tilpass leseren og leseopplevelsen</p>
             </div>
           </div>
 
@@ -67,16 +97,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               sound.playPop();
               onClose();
             }}
-            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+            className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+            title="Lukk (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Options */}
-        <div className="space-y-3">
+        {/* Scrollable Content Area */}
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4">
           {/* Reader's Name input */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 space-y-2.5">
+          <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 space-y-3 shadow-2xs">
             <div className="flex items-center justify-between">
               <label htmlFor="settings-user-name" className="text-xs sm:text-sm font-extrabold text-amber-950 flex items-center gap-1.5">
                 <User className="w-4 h-4 text-amber-600" />
@@ -87,34 +118,67 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                id="settings-user-name"
-                type="text"
-                value={nameInput}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="Skriv inn navn, f.eks. Mille"
-                maxLength={30}
-                className="flex-1 px-3.5 py-2 rounded-xl bg-white border border-amber-300/80 text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-2xs"
-              />
-              {nameInput.trim() !== 'Mille' && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  id="settings-user-name"
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => {
+                    setNameInput(e.target.value);
+                    setSaveMessage(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSaveNameOnly();
+                    }
+                  }}
+                  placeholder="Skriv inn navn, f.eks. Mille"
+                  maxLength={30}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-amber-300 text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-2xs"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => {
-                    sound.playPop();
-                    handleNameChange('Mille');
-                  }}
-                  className="px-2.5 py-2 rounded-xl bg-white hover:bg-amber-100/70 border border-amber-300 text-xs font-bold text-amber-900 cursor-pointer transition-colors shrink-0"
-                  title="Nullstill til Mille"
+                  onClick={handleSaveNameOnly}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                  title="Lagre navnet nå"
                 >
-                  Mille
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Lagre navn</span>
                 </button>
-              )}
+
+                {nameInput.trim().toLowerCase() !== 'mille' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playPop();
+                      setNameInput('Mille');
+                      onSave({ ...settings, userName: 'Mille' });
+                      setSaveMessage('Satt tilbake til Mille!');
+                    }}
+                    className="px-3 py-2.5 rounded-xl bg-white hover:bg-amber-100/70 border border-amber-300 text-xs font-bold text-amber-900 cursor-pointer transition-colors"
+                    title="Nullstill til Mille"
+                  >
+                    Mille
+                  </button>
+                )}
+              </div>
             </div>
 
-            <p className="text-[11px] text-amber-800/80 font-medium">
-              Navnet lagres trygt på denne enheten. Hele appen, heiaropene og diplomene tilpasses dette navnet!
-            </p>
+            {saveMessage ? (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/80 px-3 py-1.5 rounded-xl border border-emerald-300 animate-in fade-in">
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                <span>{saveMessage}</span>
+              </div>
+            ) : (
+              <p className="text-[11px] text-amber-800 font-medium">
+                Skriv inn navnet og trykk <strong>Lagre navn</strong> eller <strong>Enter</strong>. Hele appen, heiaropene og diplomene tilpasses dette navnet!
+              </p>
+            )}
           </div>
 
           {/* Sound toggle */}
@@ -137,6 +201,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${
                 settings.soundEnabled ? 'bg-teal-600' : 'bg-slate-300'
               }`}
+              title={settings.soundEnabled ? 'Skru av lyd' : 'Skru på lyd'}
             >
               <span
                 className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
@@ -149,7 +214,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Visual Theme Selection */}
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
             <div className="text-xs sm:text-sm font-extrabold text-slate-800">
-              Visuelt tema for Mille
+              Visuelt tema for {nameInput.trim() || 'leseren'}
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button
@@ -235,30 +300,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </button>
           </div>
-        </div>
 
-        {/* Pedagogical info box */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-teal-50/50 border border-blue-200/70 text-slate-800 space-y-2">
-          <div className="flex items-center gap-2 text-blue-900 font-extrabold text-xs">
-            <BookOpen className="w-4 h-4" />
-            <span>Hvorfor to runder og tempoøvelse?</span>
+          {/* Pedagogical info box */}
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-teal-50/50 border border-blue-200/70 text-slate-800 space-y-2">
+            <div className="flex items-center gap-2 text-blue-900 font-extrabold text-xs">
+              <BookOpen className="w-4 h-4" />
+              <span>Hvorfor to runder og tempoøvelse?</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Forskning viser at <strong>repetert lesing</strong> (å lese samme tekst to ganger med en modell eller tempoøvelse mellom) er en av de mest effektive metodene for å øke leseflyt, ordgjenkjenning og leseglede hos barn og unge.
+            </p>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Forskning viser at <strong>repetert lesing</strong> (å lese samme tekst to ganger med en modell eller tempoøvelse mellom) er en av de mest effektive metodene for å øke leseflyt, ordgjenkjenning og leseglede hos barn og unge.
-          </p>
         </div>
 
-        {/* Close button */}
-        <button
-          type="button"
-          onClick={() => {
-            sound.playPop();
-            onClose();
-          }}
-          className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-sm transition-all cursor-pointer"
-        >
-          Lukk innstillinger
-        </button>
+        {/* Modal Sticky Footer (Always visible, cannot be scrolled off-screen) */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playPop();
+              onClose();
+            }}
+            className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs sm:text-sm transition-all cursor-pointer"
+          >
+            Avbryt
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndClose}
+            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#3A6B53] hover:bg-[#2C5340] text-white font-extrabold text-xs sm:text-sm shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            <span>Lagre og lukk</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -51,6 +51,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
 
   const [cheer, setCheer] = useState(() => getMilleCheer(sessions, streak, completedToday, name));
+  const [isSpinning, setIsSpinning] = useState(false);
 
   // Update cheer if name or sessions change
   React.useEffect(() => {
@@ -59,7 +60,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const handleRefreshCheer = () => {
     sound.playPop();
-    setCheer(getMilleCheer(sessions, streak, completedToday, name));
+    setIsSpinning(true);
+    setTimeout(() => setIsSpinning(false), 400);
+    setCheer(prev => getMilleCheer(sessions, streak, completedToday, name, prev.headline));
   };
 
   // Theme-specific styles
@@ -191,7 +194,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={handleRefreshCheer}
-            className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
               isDark
                 ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
                 : isNordic
@@ -200,14 +203,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             }`}
             title={`Få et nytt heiarop til ${name}`}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-300 ${isSpinning ? 'rotate-180' : ''}`} />
             <span className="hidden sm:inline">Nytt heiarop</span>
           </button>
         </div>
 
-        <div className={`mt-2 pl-3 border-l-2 ${
-          isDark ? 'border-amber-500/60 text-slate-200' : isNordic ? 'border-[#D35E35]/80 text-[#3C3229]' : 'border-amber-400 text-slate-800'
-        }`}>
+        <div 
+          key={cheer.headline}
+          className={`mt-2 pl-3 border-l-2 animate-in fade-in duration-200 ${
+            isDark ? 'border-amber-500/60 text-slate-200' : isNordic ? 'border-[#D35E35]/80 text-[#3C3229]' : 'border-amber-400 text-slate-800'
+          }`}
+        >
           <p className="text-sm sm:text-base font-medium leading-relaxed italic">
             "{cheer.quote}"
           </p>
